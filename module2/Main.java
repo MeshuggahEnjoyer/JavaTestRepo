@@ -6,7 +6,8 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        UserDAO userDAO = new UserDaoHibernate();
+        UserDAO userDAO = new UserDaoHibernate(HibernateSessionFactoryUtil.getSessionFactoryPostgres());
+        UserService userService = new UserService(userDAO);
 
         String userchoice;
         do {
@@ -14,16 +15,16 @@ public class Main {
             userchoice = scanner.nextLine().toLowerCase(Locale.ROOT);
             switch (userchoice) {
                 case "c":
-                    createUser(scanner, userDAO);
+                    createUser(scanner, userService);
                     break;
                 case "r":
-                    getUserById(scanner, userDAO);
+                    getUserById(scanner, userService);
                     break;
                 case "u":
-                    updateUser(scanner, userDAO);
+                    updateUser(scanner, userService);
                     break;
                 case "d":
-                    deleteUser(scanner, userDAO);
+                    deleteUser(scanner, userService);
                     break;
                 case "e":
                     break;
@@ -39,8 +40,8 @@ public class Main {
 
     }
 
-    public static void createUser(Scanner scanner, UserDAO userDAO) {
-        System.out.println("Введите name, age, email через запятую");
+    public static void createUser(Scanner scanner, UserService userService) {
+        System.out.println("Введите name, age, email через пробел");
         String[] userdata = scanner.nextLine().split(" ");
         if (userdata.length != 3) {
             System.out.println("Ошибка ввода данных");
@@ -51,30 +52,26 @@ public class Main {
             int age = Integer.parseInt(userdata[1].trim());
             String email = userdata[2].trim();
             User user = new User(name, age, email);
-            userDAO.create(user);
+            userService.create(user);
             System.out.println("Пользователь создан: " + user);
         } catch (NumberFormatException e) {
-            System.out.println("Возраст введён неверно");
+            System.out.println("Введите корректный возраст");
         }
     }
 
-    public static void getUserById(Scanner scanner, UserDAO userDAO) {
+    public static void getUserById(Scanner scanner, UserService userService) {
         System.out.println("Введите Id");
         int userid = Integer.parseInt(scanner.nextLine());
-        System.out.println(userDAO.getById(userid));
+        System.out.println(userService.getById(userid));
     }
 
-    public static void updateUser(Scanner scanner, UserDAO userDAO) {
+    public static void updateUser(Scanner scanner, UserService userService) {
         System.out.println("Введите Id");
-        int userid = Integer.parseInt(scanner.nextLine());
-        User user = userDAO.getById(userid);
-        if (user == null) {
-            System.out.println("Пользователь не найден");
-            return;
-        }
+        long userid = Long.parseLong(scanner.nextLine());
+        //User user = userService.getById(userid);
 
-        System.out.println("Введите новые name, age, email через запятую");
-        String[] userdata = scanner.nextLine().split(", ");
+        System.out.println("Введите новые name, age, email через пробел");
+        String[] userdata = scanner.nextLine().split(" ");
         if (userdata.length != 3) {
             System.out.println("Ошибка ввода данных");
             return;
@@ -83,25 +80,23 @@ public class Main {
             String name = userdata[0].trim();
             int age = Integer.parseInt(userdata[1].trim());
             String email = userdata[2].trim();
+            User user = new User();
+            user.setId(userid);
             user.setName(name);
             user.setAge(age);
             user.setEmail(email);
-            userDAO.update(user);
+            userService.update(user);
             System.out.println("Пользователь обновлен: " + user);
         } catch (NumberFormatException e) {
-            System.out.println("Возраст введён неверно");
+            System.out.println("Введите корректный возраст");
         }
 
     }
 
-    public static void deleteUser(Scanner scanner, UserDAO userDAO) {
+    public static void deleteUser(Scanner scanner, UserService userService) {
         System.out.println("Введите Id");
         int userid = Integer.parseInt(scanner.nextLine());
-        if (userDAO.getById(userid) == null) {
-            System.out.println("Пользователь не найден");
-            return;
-        }
-        userDAO.delete(userid);
+        userService.delete(userid);
         System.out.println("Пользователь удален");
     }
 }

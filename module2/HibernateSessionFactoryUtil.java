@@ -23,6 +23,8 @@ public class HibernateSessionFactoryUtil {
     }
 
     public static void closeSession() {
-        sessionFactory.close();
+        if (sessionFactory != null) {
+            sessionFactory.close();
+        }
     }
 }
